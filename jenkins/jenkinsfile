@@ -1,0 +1,16 @@
+node {
+   stage ('Pull Code') {
+        echo 'Check out code'
+        git 'https://github.com/andconst/lab-devops.git'
+        echo 'Checked out code'
+   }
+   stage ('Build Docker Image') {
+       echo 'Building image'
+       hello_world_py = docker.build("andconst/hellopython:latest")
+   }
+
+   stage ('Push Docker Image') {
+       echo 'Pushing image'
+       hello_world_py.push()
+   }
+}
