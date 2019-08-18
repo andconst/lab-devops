@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  ngix-proxy:
+    image: jwilder/nginx-proxy
+    container_name: ngix-proxy
+    restart: always
+    ports:
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:80:80"
+    volumes:
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/certs:/etc/nginx/certs:ro
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/vhosts.d/:/etc/nginx/vhost.d
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/html/:/usr/share/nginx/html
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/config/:/etc/nginx/conf.d:rw
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+
+  ngix-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    volumes:
+     - /home/andreas/Desktop/TRG\ Assessment/lab-devops/ngix/certs/:/etc/nginx/certs:rw
+     - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from:
+     - ngix-proxy
+
+  hello_world_py:
+    image: andconst/hellopython:0.0.1
+    restart: always
+    ports:
+     - "127.0.0.1:8040:80"
+    environment:
+      - VIRTUAL_HOST=localhost
+      - LETSENCRYPT_HOST=www.testdomain.com
+      - letsencrypt_email=andreas9const@gmail.com

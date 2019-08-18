@@ -1,0 +1,41 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Running hellopython container
+    docker_container:
+      name: hellopython
+      image: andconst/hellopython:latest
+      state: started
+      ports:
+      - "127.0.0.1:8040:80"
+      env:
+         VIRTUAL_HOST="localhost"
+         LETSENCRYPT_HOST=www.testdomain.com
+         letsencrypt_email=andreas9const@gmail.com
+
+  - name: Running ngix-proxy container 
+    docker_container:
+      name: nginx-proxy
+      image: jwilder/nginx-proxy
+      state: started
+      ports:
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:80:80"
+      volumes:
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/certs:/etc/nginx/certs:ro
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/vhosts.d/:/etc/nginx/vhost.d
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/html/:/usr/share/nginx/html
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/config/:/etc/nginx/conf.d:rw
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  - name: Running nginx-letsencrypt container 
+    docker_container:
+      name: nginx-letsencrypt
+      image: jrcs/letsencrypt-nginx-proxy-companion
+      state: started
+      volumes:
+      - /home/andreas/Desktop/TRG\ Assessment/lab-devops/nginx/certs/:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      volumes_from:
+      - nginx-proxy
